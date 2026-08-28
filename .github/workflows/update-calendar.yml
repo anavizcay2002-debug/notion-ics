@@ -3,7 +3,7 @@ name: Update Notion Calendar
 on:
   workflow_dispatch:
   schedule:
-    - cron: "*/30 * * * *"
+    - cron: "*/5 * * * *"
 
 permissions:
   contents: read
@@ -42,6 +42,7 @@ jobs:
         run: |
           mkdir public
           cp calendar.ics public/calendar.ics
+          cp index.html public/index.html
 
       - name: Upload calendar to GitHub Pages
         uses: actions/upload-pages-artifact@v3
