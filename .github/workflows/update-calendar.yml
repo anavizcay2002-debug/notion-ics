@@ -16,7 +16,6 @@ permissions:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -41,11 +40,29 @@ jobs:
           NOTION_DATA_SOURCE_ID: ${{ vars.NOTION_DATA_SOURCE_ID }}
         run: python generate_calendar.py
 
+      - name: Generate sync status
+        run: |
+          python - <<'PY'
+          import json
+          from datetime import datetime, timezone
+          from pathlib import Path
+          ics = Path("calendar.ics").read_text(encoding="utf-8")
+          events = ics.count("BEGIN:VEVENT")
+          status = {
+              "status": "ok",
+              "updated_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+              "events": events,
+              "interval_minutes": 5
+          }
+          Path("status.json").write_text(json.dumps(status, ensure_ascii=False, indent=2), encoding="utf-8")
+          PY
+
       - name: Prepare Pages files
         run: |
           mkdir public
           cp calendar.ics public/calendar.ics
           cp index.html public/index.html
+          cp status.json public/status.json
 
       - name: Upload calendar to GitHub Pages
         uses: actions/upload-pages-artifact@v3
